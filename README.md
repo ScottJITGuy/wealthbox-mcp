@@ -1,54 +1,42 @@
-## wealthbox-mcp
+## wealthbox-mcp (Keel Point — Read-Only Fork)
 
-A Model Context Protocol (MCP) server that exposes the Wealthbox CRM API to MCP-enabled clients (e.g., Claude Desktop).
+A **read-only** Model Context Protocol (MCP) server for the Wealthbox CRM API. Forked from [rhyeal/wealthbox-mcp](https://github.com/rhyeal/wealthbox-mcp) and stripped to GET-only operations for safe use with client-confidential data.
 
 - Wealthbox API docs: https://dev.wealthbox.com/
+- Original project: https://github.com/rhyeal/wealthbox-mcp
+
+### What Changed from Upstream
+
+- **All write operations removed** — no create, update, or delete tools
+- **Generic `wealthbox.request` escape hatch removed** — prevents arbitrary API calls
+- **`WealthboxClient` hardened** — only exposes a `get()` method; POST/PUT/PATCH/DELETE are not available at the code level
+- **Household mutations removed** — no add/remove member
+- **Workflow step mutations removed** — no complete/revert
+- **Default page size increased** to 25 (matches Wealthbox API default)
 
 ### Requirements
 
-- Node.js 18+ (uses global fetch)
-- A Wealthbox API Access Token (Personal access token)
-
-### Installation
-
-Global install:
-
-```bash
-npm i -g wealthbox-mcp
-```
-
-Local (from source):
-
-```bash
-npm install
-npm run build
-```
+- Node.js 18+
+- A Wealthbox API Access Token (per-user)
 
 ### Configuration
 
 Provide your Wealthbox token via environment variable or a local file:
 
-- `WEALTHBOX_TOKEN` (required): your Wealthbox API access token; sent as `ACCESS_TOKEN` header per docs
+- `WEALTHBOX_TOKEN` (required): your Wealthbox API access token
 - `WEALTHBOX_API_BASE_URL` (optional): defaults to `https://api.crmworkspace.com`
-- Optional local file fallback: `wealthbox_key.txt` (first line)
+- Optional file fallback: `wealthbox_key.txt` or `.secrets/wealthbox_key.txt`
 
-Example (stdio run):
+### Using with Claude Desktop
 
-```bash
-WEALTHBOX_TOKEN=your_token_here wealthbox-mcp
-# or if running from source
-WEALTHBOX_TOKEN=your_token_here node dist/index.js
-```
-
-### Using with Claude (MCP)
-
-Add to your Claude Desktop config (platform-specific path). Minimal example:
+Add to your Claude Desktop config:
 
 ```json
 {
   "mcpServers": {
     "wealthbox": {
-      "command": "wealthbox-mcp",
+      "command": "npx",
+      "args": ["-y", "wealthbox-mcp"],
       "env": {
         "WEALTHBOX_TOKEN": "YOUR_API_TOKEN"
       }
@@ -57,174 +45,70 @@ Add to your Claude Desktop config (platform-specific path). Minimal example:
 }
 ```
 
-After starting Claude, you can ask it to list tools and call them. Example prompts:
+### Read-Only Tools (24 total)
 
-- "List all MCP tools from the wealthbox server."
-- "Call the wealthbox.health tool and show the full structured JSON."
-- "Call the wealthbox.getMe tool and print the full structured JSON."
+**Health & Basics**
+- `wealthbox.health` — Verify token and connectivity
+- `wealthbox.getMe` — Authenticated user profile
+- `wealthbox.listUsers` — All users in the account
+- `wealthbox.listTeams` — All teams
 
-### Tools Overview
+**Contacts**
+- `wealthbox.contacts.list` — Search/filter contacts
+- `wealthbox.contacts.get` — Get contact by ID
 
-Core tools map to Wealthbox REST endpoints. Many create/update tools accept explicit fields and also an optional raw `body` that overrides field parameters when provided.
+**Tasks**
+- `wealthbox.tasks.list` — Search/filter tasks
+- `wealthbox.tasks.get` — Get task by ID
 
-- Health and basics
-  - `wealthbox.health` – GET `/v1/me` and return ok + profile
-  - `wealthbox.getMe` – GET `/v1/me`
-  - `wealthbox.listUsers` – GET `/v1/users`
-  - `wealthbox.listTeams` – GET `/v1/teams`
-  - `wealthbox.request` – Generic caller: `{ method, path, body?, query? }`
+**Events**
+- `wealthbox.events.list` — Search/filter events
+- `wealthbox.events.get` — Get event by ID
 
-- Contacts
-  - `wealthbox.contacts.list` – GET `/v1/contacts`
-  - `wealthbox.contacts.get` – GET `/v1/contacts/{id}`
-  - `wealthbox.contacts.create` – POST `/v1/contacts`
-  - `wealthbox.contacts.update` – PUT `/v1/contacts/{id}`
-  - `wealthbox.contacts.delete` – DELETE `/v1/contacts/{id}`
+**Notes**
+- `wealthbox.notes.list` — Search/filter notes
+- `wealthbox.notes.get` — Get note by ID
 
-- Tasks
-  - `wealthbox.tasks.list` – GET `/v1/tasks`
-  - `wealthbox.tasks.get` – GET `/v1/tasks/{id}`
-  - `wealthbox.tasks.create` – POST `/v1/tasks`
-  - `wealthbox.tasks.update` – PUT `/v1/tasks/{id}`
-  - `wealthbox.tasks.delete` – DELETE `/v1/tasks/{id}`
+**Opportunities**
+- `wealthbox.opportunities.list` — Search/filter opportunities
+- `wealthbox.opportunities.get` — Get opportunity by ID
 
-- Events
-  - `wealthbox.events.list` – GET `/v1/events`
-  - `wealthbox.events.get` – GET `/v1/events/{id}`
-  - `wealthbox.events.create` – POST `/v1/events`
-  - `wealthbox.events.update` – PUT `/v1/events/{id}`
-  - `wealthbox.events.delete` – DELETE `/v1/events/{id}`
+**Projects**
+- `wealthbox.projects.list` — Search/filter projects
+- `wealthbox.projects.get` — Get project by ID
 
-- Notes
-  - `wealthbox.notes.list` – GET `/v1/notes`
-  - `wealthbox.notes.get` – GET `/v1/notes/{id}`
-  - `wealthbox.notes.create` – POST `/v1/notes`
-  - `wealthbox.notes.update` – PUT `/v1/notes/{id}`
+**Comments & Activity**
+- `wealthbox.comments.list` — List comments by resource
+- `wealthbox.activityStream.list` — Activity stream with cursor pagination
 
-- Opportunities
-  - `wealthbox.opportunities.list` – GET `/v1/opportunities`
-  - `wealthbox.opportunities.get` – GET `/v1/opportunities/{id}`
-  - `wealthbox.opportunities.create` – POST `/v1/opportunities`
-  - `wealthbox.opportunities.update` – PUT `/v1/opportunities/{id}`
-  - `wealthbox.opportunities.delete` – DELETE `/v1/opportunities/{id}`
+**Metadata**
+- `wealthbox.userGroups.list` — User groups
+- `wealthbox.categories.list` — Customizable categories (16 types)
+- `wealthbox.tags.list` — Tags (by document type)
+- `wealthbox.customFields.list` — Custom field definitions
+- `wealthbox.contactRoles.list` — Contact role definitions
 
-- Projects
-  - `wealthbox.projects.list` – GET `/v1/projects`
-  - `wealthbox.projects.get` – GET `/v1/projects/{id}`
-  - `wealthbox.projects.create` – POST `/v1/projects`
-  - `wealthbox.projects.update` – PUT `/v1/projects/{id}`
-  - `wealthbox.projects.delete` – DELETE `/v1/projects/{id}`
-
-- Comments & Activity Stream
-  - `wealthbox.comments.list` – GET `/v1/comments{?resource_id,resource_type,updated_since,updated_before}`
-  - `wealthbox.activityStream.list` – GET `/v1/activity_stream`
-
-- Metadata & Categories
-  - `wealthbox.userGroups.list` – GET `/v1/user_groups`
-  - `wealthbox.tags.list` – GET `/v1/tags{?document_type}` (document_type: `Contact` or `Note`)
-  - `wealthbox.categories.list` – GET `/v1/categories/{type}` where type ∈ `tags|custom_fields|opportunity_stages|opportunity_pipelines|contact_types|contact_sources|task_categories|event_categories|file_categories|investment_objectives|financial_account_types|email_types|phone_types|address_types|website_types|contact_roles`
-  - `wealthbox.customFields.list` – GET `/v1/custom_fields`
-  - `wealthbox.contactRoles.list` – GET `/v1/contact_roles`
-
-- Workflows
-  - `wealthbox.workflows.list` – GET `/v1/workflows`
-  - `wealthbox.workflows.get` – GET `/v1/workflows/{id}`
-  - `wealthbox.workflows.create` – POST `/v1/workflows`
-  - `wealthbox.workflows.delete` – DELETE `/v1/workflows/{id}`
-  - `wealthbox.workflowTemplates.list` – GET `/v1/workflow_templates`
-  - `wealthbox.workflowTemplates.get` – GET `/v1/workflow_templates/{id}`
-  - `wealthbox.workflowSteps.complete` – POST `/v1/workflow_steps/{id}/complete`
-  - `wealthbox.workflowSteps.revert` – POST `/v1/workflow_steps/{id}/revert`
-
-- Households
-  - `wealthbox.households.addMember` – POST `/v1/households/{household_id}/members`
-  - `wealthbox.households.deleteMember` – DELETE `/v1/households/{household_id}/members/{id}`
-
-### Parameter Hints (selected)
-
-Contacts list (query)
-
-```json
-{
-  "query": {
-    "name": "string",
-    "email": "string",
-    "phone": "string",
-    "contact_type": "string",
-    "id": 123,
-    "active": true,
-    "tags": ["VIP", "Newsletter"],
-    "type": "person",
-    "page": 1,
-    "per_page": 5
-  }
-}
-```
-
-Example: `{ "query": { "name": "John Smith", "per_page": 10 } }`
-
-Notes
-
-```json
-// wealthbox.notes.create
-{
-  "content": "Updated with Claude via Wealthbox MCP",
-  "linked_to": [{ "id": 12345, "type": "Contact" }]
-}
-// wealthbox.notes.update
-{ "id": 211578273, "content": "New contents" }
-```
-
-Tasks
-
-```json
-// wealthbox.tasks.create
-{ "title": "Call client", "due_date": "2025-10-04", "assigned_to_user_id": 123 }
-```
-
-Contacts
-
-```json
-// wealthbox.contacts.create
-{ "first_name": "Ada", "last_name": "Lovelace", "emails": [{ "address": "ada@example.com", "type": "Work" }] }
-```
-
-Households
-
-```json
-// wealthbox.households.addMember
-{ "household_id": 1, "id": 2, "title": "Head" }
-```
-
-Tags/Categories
-
-```json
-// wealthbox.tags.list
-{ "document_type": "Contact" }
-
-// wealthbox.categories.list
-{ "type": "contact_sources" }
-```
+**Workflows**
+- `wealthbox.workflows.list` — List workflows
+- `wealthbox.workflows.get` — Get workflow by ID
+- `wealthbox.workflowTemplates.list` — List workflow templates
+- `wealthbox.workflowTemplates.get` — Get template by ID
 
 ### Security
 
-- Do not commit your token. The token is loaded from `WEALTHBOX_TOKEN` or a local file (`wealthbox_key.txt`) which is ignored by git and npm.
-- The server uses HTTPS to talk to Wealthbox’s API endpoint `https://api.crmworkspace.com`.
+- **Read-only by design** — the HTTP client only supports GET requests
+- **Per-user tokens** — each user authenticates with their own Wealthbox access token
+- Do not commit tokens to version control
+- Token is loaded from `WEALTHBOX_TOKEN` env var or a local key file (gitignored)
 
 ### Development
-
-Run locally (stdio):
 
 ```bash
 npm install
 npm run build
-WEALTHBOX_TOKEN=$(cat wealthbox_key.txt) node dist/index.js
+WEALTHBOX_TOKEN=$(cat wealthbox_key.txt) npm start
 ```
 
 ### License
 
 MIT
-
-### Acknowledgements
-
-Built on the TypeScript MCP SDK. See the Wealthbox API docs for full parameter and response details: https://dev.wealthbox.com/

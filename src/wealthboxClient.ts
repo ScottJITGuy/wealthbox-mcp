@@ -11,16 +11,19 @@ export class WealthboxClient {
     this.timeoutMs = 15000;
   }
 
-  private buildHeaders(extra?: Record<string, string>): Record<string, string> {
+  private buildHeaders(): Record<string, string> {
     return {
       Accept: "application/json",
       "Content-Type": "application/json",
       ACCESS_TOKEN: this.token,
-      ...extra,
     };
   }
 
-  async request<T>(method: string, path: string, body?: unknown, query?: Record<string, string | number | boolean | undefined>): Promise<T> {
+  /**
+   * GET-only HTTP client. This server is intentionally read-only —
+   * no POST, PUT, PATCH, or DELETE methods are exposed.
+   */
+  async get<T>(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<T> {
     const url = new URL(`${this.baseUrl}${path}`);
     if (query) {
       Object.entries(query).forEach(([k, v]) => {
@@ -31,9 +34,8 @@ export class WealthboxClient {
     const abort = new AbortController();
     const timeout = setTimeout(() => abort.abort(), this.timeoutMs);
     const res = await fetch(url.toString(), {
-      method,
+      method: "GET",
       headers: this.buildHeaders(),
-      body: body === undefined ? undefined : JSON.stringify(body),
       signal: abort.signal,
     }).finally(() => clearTimeout(timeout));
 
@@ -48,21 +50,4 @@ export class WealthboxClient {
     }
     return (await res.text()) as unknown as T;
   }
-
-  // Minimal helpers for common endpoints from docs
-  getMe() {
-    // Me: Retrieve login profile information
-    return this.request<{ user: unknown }>("GET", "/v1/me");
-  }
-
-  listUsers() {
-    // Users: Retrieve all users
-    return this.request<{ users: unknown[] }>("GET", "/v1/users");
-  }
-
-  listTeams() {
-    // Teams: List all teams
-    return this.request<{ teams: unknown[] }>("GET", "/v1/teams");
-  }
 }
-

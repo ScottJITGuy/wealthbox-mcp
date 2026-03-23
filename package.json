@@ -1,8 +1,8 @@
 {
   "name": "wealthbox-mcp",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "type": "module",
-  "description": "Model Context Protocol server for Wealthbox API",
+  "description": "Read-only MCP server for Wealthbox CRM API (Keel Point fork)",
   "main": "dist/index.js",
   "bin": {
     "wealthbox-mcp": "dist/index.js"
