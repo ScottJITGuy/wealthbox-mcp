@@ -5,3 +5,7 @@ dist/
 .env
 wealthbox_key.txt
 
+*.mcpb
+wealthbox_key.txt
+.secrets/
+.env

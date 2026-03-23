@@ -1,0 +1,74 @@
+{
+  "manifest_version": "0.3",
+  "name": "wealthbox-crm",
+  "display_name": "Wealthbox CRM (Read-Only)",
+  "version": "1.0.0",
+  "description": "Read-only access to Wealthbox CRM — query contacts, tasks, events, notes, opportunities, projects, workflows, and more.",
+  "long_description": "Connect Claude to your Wealthbox CRM account with read-only access. Search and view client contacts, tasks, calendar events, notes, opportunities, projects, workflows, and activity streams. All data access is scoped to your personal API token — you only see what your Wealthbox permissions allow. No data is written back to Wealthbox.",
+  "author": {
+    "name": "Keel Point",
+    "url": "https://www.keelpoint.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ScottJITGuy/wealthbox-mcp"
+  },
+  "license": "MIT",
+  "keywords": ["wealthbox", "crm", "contacts", "wealth-management", "read-only"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "WEALTHBOX_TOKEN": "${user_config.wealthbox_token}"
+      }
+    }
+  },
+  "user_config": {
+    "wealthbox_token": {
+      "type": "string",
+      "title": "Wealthbox API Token",
+      "description": "Your personal Wealthbox access token. Get it from Settings > Access Tokens in Wealthbox (app.crmworkspace.com/settings/access_tokens).",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.13.91",
+    "platforms": ["darwin", "win32"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "tools": [
+    { "name": "wealthbox.health", "description": "Verify token and connectivity" },
+    { "name": "wealthbox.getMe", "description": "Authenticated user profile" },
+    { "name": "wealthbox.listUsers", "description": "All users in the account" },
+    { "name": "wealthbox.listTeams", "description": "All teams" },
+    { "name": "wealthbox.contacts.list", "description": "Search and filter contacts" },
+    { "name": "wealthbox.contacts.get", "description": "Get contact by ID" },
+    { "name": "wealthbox.tasks.list", "description": "Search and filter tasks" },
+    { "name": "wealthbox.tasks.get", "description": "Get task by ID" },
+    { "name": "wealthbox.events.list", "description": "Search and filter events" },
+    { "name": "wealthbox.events.get", "description": "Get event by ID" },
+    { "name": "wealthbox.notes.list", "description": "Search and filter notes" },
+    { "name": "wealthbox.notes.get", "description": "Get note by ID" },
+    { "name": "wealthbox.opportunities.list", "description": "Search and filter opportunities" },
+    { "name": "wealthbox.opportunities.get", "description": "Get opportunity by ID" },
+    { "name": "wealthbox.projects.list", "description": "Search and filter projects" },
+    { "name": "wealthbox.projects.get", "description": "Get project by ID" },
+    { "name": "wealthbox.comments.list", "description": "List comments by resource" },
+    { "name": "wealthbox.activityStream.list", "description": "Activity stream" },
+    { "name": "wealthbox.userGroups.list", "description": "User groups" },
+    { "name": "wealthbox.categories.list", "description": "Customizable categories" },
+    { "name": "wealthbox.tags.list", "description": "Tags by document type" },
+    { "name": "wealthbox.customFields.list", "description": "Custom field definitions" },
+    { "name": "wealthbox.contactRoles.list", "description": "Contact role definitions" },
+    { "name": "wealthbox.workflows.list", "description": "List workflows" },
+    { "name": "wealthbox.workflows.get", "description": "Get workflow by ID" },
+    { "name": "wealthbox.workflowTemplates.list", "description": "List workflow templates" },
+    { "name": "wealthbox.workflowTemplates.get", "description": "Get workflow template by ID" }
+  ]
+}
